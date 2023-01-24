@@ -16,3 +16,11 @@
     justify-content: center;
     text-align: center;
 }
+
+.img-container {
+    margin-bottom: 1rem;
+}
+.img-avatar {
+    width: 80px;
+    height: 80px;
+}
