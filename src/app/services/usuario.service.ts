@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment.prod';
 
 import { RegisterForm } from '../interfaces/register-form.interface';
 import { LoginForm } from '../interfaces/login-form.interface';
+import { CargarUsuario } from '../interfaces/cargar-usuarios.interface';
 import { Usuario } from '../models/usuario.model';
 
 declare const google: any;
@@ -33,6 +34,14 @@ export class UsuarioService {
 
   get uid(): string {
     return this.usuario.uid || ''
+  }
+
+  get headers() {
+    return {
+      headers: {
+        'x-token': this.token
+      }
+    }
   }
 
   logout() {
@@ -84,11 +93,7 @@ export class UsuarioService {
       role: this.usuario.role,
     }
     
-    return this.http.put(`${ base_url }/usuarios/${ this.uid }`, data, {
-      headers: {
-        'x-token': this.token
-      }
-    })
+    return this.http.put(`${ base_url }/usuarios/${ this.uid }`, data, this.headers)
 
   }
 
@@ -108,6 +113,37 @@ export class UsuarioService {
           localStorage.setItem('token', resp.token)
         })    
       )
+  }
+
+  cargarUsuarios( desde: number = 0 ) {
+    
+    const url = `${ base_url }/usuarios?desde=${ desde }`
+    return this.http.get<CargarUsuario>(url, this.headers )
+                    .pipe(
+                      map( resp => {
+                        const usuarios = resp.usuarios.map( 
+                          u => new Usuario(u.name, u.email, '', u.img, u.google, u.role, u.uid)
+                        )
+
+                        return {
+                          total: resp.total,
+                          usuarios
+                        }
+                      })  
+                    )
+
+  }
+
+  eliminarUsuario( usuario: Usuario ) {
+
+    // http://localhost:3001/api/v1/usuarios/63bcf94125dcf040005f7653
+    const url = `${ base_url }/usuarios/${ usuario.uid }`
+    return this.http.delete(url, this.headers )
+    
+  }
+
+  guardarUsuario( usuario: Usuario ) {
+    return this.http.put(`${ base_url }/usuarios/${ usuario.uid }`, usuario, this.headers)
   }
 
 }
